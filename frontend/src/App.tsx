@@ -1,13 +1,10 @@
 import { useState, useCallback } from 'react'
 import { Input, Button, ConfigProvider } from 'antd'
-import {
-  SendOutlined,
-  StopOutlined,
-  RobotOutlined,
-} from '@ant-design/icons'
+import { SendOutlined, StopOutlined } from '@ant-design/icons'
 import { useChat } from './hooks/useChat'
 import MessageList from './components/MessageList'
 import Sidebar, { type SidebarSession } from './components/Sidebar'
+import styles from './App.module.css'
 
 const { TextArea } = Input
 
@@ -28,19 +25,13 @@ export default function App() {
     clearMessages,
   } = useChat('/api/chat')
 
-  // 新建对话
   const handleNewSession = useCallback(() => {
     const id = generateId()
-    const newSession: SidebarSession = {
-      id,
-      title: '新对话',
-    }
-    setSessions((prev) => [newSession, ...prev])
+    setSessions((prev) => [{ id, title: '新对话' }, ...prev])
     setActiveSessionId(id)
     clearMessages()
   }, [clearMessages])
 
-  // 选择对话
   const handleSelectSession = useCallback(
     (id: string) => {
       setActiveSessionId(id)
@@ -49,7 +40,6 @@ export default function App() {
     [clearMessages],
   )
 
-  // 删除对话
   const handleDeleteSession = useCallback(
     (id: string) => {
       setSessions((prev) => prev.filter((s) => s.id !== id))
@@ -61,7 +51,6 @@ export default function App() {
     [activeSessionId, clearMessages],
   )
 
-  // 发送消息时更新对话标题
   const handleSend = useCallback(() => {
     if (!activeSessionId && input.trim()) {
       const id = generateId()
@@ -78,12 +67,14 @@ export default function App() {
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: '#1677ff',
-          borderRadius: 6,
+          colorPrimary: '#10a37f',
+          borderRadius: 8,
+          fontFamily:
+            "'Söhne', 'PingFang SC', -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif",
         },
       }}
     >
-      <div className="chat-layout">
+      <div className={styles.layout}>
         <Sidebar
           sessions={sessions}
           activeSessionId={activeSessionId}
@@ -92,55 +83,45 @@ export default function App() {
           onDelete={handleDeleteSession}
         />
 
-        <div className="chat-main">
-          {/* 顶部标题栏 */}
-          <div
-            style={{
-              padding: '12px 24px',
-              borderBottom: '1px solid #f0f0f0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <RobotOutlined style={{ fontSize: 18, color: '#52c41a' }} />
-            <span style={{ fontSize: 16, fontWeight: 500 }}>AI 智能助手</span>
-          </div>
-
-          {/* 消息列表 */}
+        <div className={styles.main}>
           <MessageList messages={messages} isLoading={isLoading} />
 
-          {/* 输入区 */}
-          <div className="chat-input-area">
-            <div className="chat-input-wrapper">
-              <TextArea
-                value={input}
-                onChange={(e) => handleInputChange(e.target.value)}
-                onPressEnter={(e) => {
-                  if (!e.shiftKey) {
-                    e.preventDefault()
-                    handleSend()
-                  }
-                }}
-                placeholder="输入消息，Enter 发送，Shift+Enter 换行"
-                autoSize={{ minRows: 1, maxRows: 4 }}
-                disabled={isLoading}
-              />
-              {isLoading ? (
-                <Button
-                  type="primary"
-                  danger
-                  icon={<StopOutlined />}
-                  onClick={stop}
+          <div className={styles.inputArea}>
+            <div className={styles.inputContainer}>
+              <div className={styles.inputWrapper}>
+                <TextArea
+                  value={input}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onPressEnter={(e) => {
+                    if (!e.shiftKey) {
+                      e.preventDefault()
+                      handleSend()
+                    }
+                  }}
+                  placeholder="发送消息"
+                  autoSize={{ minRows: 1, maxRows: 6 }}
+                  disabled={isLoading}
+                  variant="borderless"
                 />
-              ) : (
-                <Button
-                  type="primary"
-                  icon={<SendOutlined />}
-                  onClick={handleSend}
-                  disabled={!input.trim()}
-                />
-              )}
+                {isLoading ? (
+                  <Button
+                    type="primary"
+                    danger
+                    icon={<StopOutlined />}
+                    onClick={stop}
+                  />
+                ) : (
+                  <Button
+                    type="primary"
+                    icon={<SendOutlined />}
+                    onClick={handleSend}
+                    disabled={!input.trim()}
+                  />
+                )}
+              </div>
+              <p className={styles.inputHint}>
+                AI 可能会犯错，请核实重要信息
+              </p>
             </div>
           </div>
         </div>

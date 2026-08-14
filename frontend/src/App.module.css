@@ -1,0 +1,96 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--canvas);
+}
+
+/* ===== Input area ===== */
+.inputArea {
+  flex-shrink: 0;
+  padding-bottom: 20px;
+  background: linear-gradient(to bottom, transparent 0%, var(--canvas) 40%);
+}
+
+.inputContainer {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px 10px 10px 20px;
+  box-shadow: var(--shadow-input);
+  transition: border-color 0.15s ease;
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--text-tertiary);
+}
+
+/* Antd TextArea overrides */
+.inputWrapper :global(.ant-input) {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+  font-size: 16px !important;
+  color: var(--text) !important;
+  resize: none !important;
+  line-height: 1.5 !important;
+}
+.inputWrapper :global(.ant-input:focus),
+.inputWrapper :global(.ant-input-focused) {
+  box-shadow: none !important;
+  border: none !important;
+}
+.inputWrapper :global(.ant-input::placeholder) {
+  color: var(--text-tertiary) !important;
+}
+
+/* Antd Button overrides */
+.inputWrapper :global(.ant-btn) {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: var(--radius-full) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+.inputWrapper :global(.ant-btn-primary) {
+  background: var(--text) !important;
+}
+.inputWrapper :global(.ant-btn-primary[disabled]) {
+  background: var(--hover) !important;
+}
+.inputWrapper :global(.ant-btn-dangerous) {
+  background: var(--text) !important;
+}
+.inputWrapper :global(.ant-btn .anticon) {
+  color: #fff;
+}
+
+.inputHint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 10px;
+}

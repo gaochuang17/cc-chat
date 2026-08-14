@@ -1,9 +1,10 @@
 import { Button, Menu } from 'antd'
 import {
-  PlusOutlined,
+  EditOutlined,
   MessageOutlined,
   DeleteOutlined,
 } from '@ant-design/icons'
+import styles from './Sidebar.module.css'
 
 export interface SidebarSession {
   id: string
@@ -48,21 +49,17 @@ export default function Sidebar({
             e.stopPropagation()
             onDelete(s.id)
           }}
-          style={{ color: '#999', fontSize: 12 }}
+          style={{ color: 'var(--text-tertiary)', fontSize: 13 }}
         />
       </div>
     ),
   }))
 
   return (
-    <div className="chat-sidebar">
-      <div style={{ padding: 12 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          block
-          onClick={onNew}
-        >
+    <div className={styles.sidebar}>
+      <div className={styles.header}>
+        <Button className={styles.newChatBtn} block onClick={onNew}>
+          <EditOutlined />
           新建对话
         </Button>
       </div>
@@ -72,7 +69,6 @@ export default function Sidebar({
           selectedKeys={activeSessionId ? [activeSessionId] : []}
           items={items}
           onClick={({ key }) => onSelect(key)}
-          style={{ borderRight: 'none', background: 'transparent' }}
         />
       </div>
     </div>

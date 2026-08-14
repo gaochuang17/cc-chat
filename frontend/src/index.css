@@ -1,163 +1,80 @@
+/* ===== Design Tokens — Global CSS Variables ===== */
+:root {
+  --canvas: #ffffff;
+  --sidebar-bg: #f9f9f9;
+  --surface: #ffffff;
+  --hover: #ececec;
+  --hover-light: #f2f2f2;
+  --border: #e5e5e5;
+  --border-subtle: #f0f0f0;
+
+  --text: #0d0d0d;
+  --text-secondary: #5d5d5d;
+  --text-tertiary: #8e8e8e;
+
+  --accent: #10a37f;
+  --accent-hover: #0d8c6d;
+
+  --bubble-user: #f4f4f4;
+  --bubble-ai: #ffffff;
+  --code-bg: #f9f9f9;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  --content-width: 1000px;
+
+  --shadow-input: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* ===== Reset ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: 'Söhne', 'PingFang SC', -apple-system, 'SF Pro Text',
+    'Segoe UI', system-ui, sans-serif;
+  color: var(--text);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
 }
 
-/* ---------- Layout ---------- */
-.chat-layout {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-
-.chat-sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  background: #f7f7f8;
-  border-right: 1px solid #e8e8e8;
-}
-
-.chat-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-/* ---------- Messages ---------- */
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 0;
-}
-
-.chat-messages-inner {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.message-item {
-  margin-bottom: 24px;
-}
-
-.message-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  flex-shrink: 0;
-  margin-bottom: 4px;
-  color: #fff;
-}
-
-.message-avatar.user {
-  background: #1677ff;
-}
-
-.message-avatar.assistant {
-  background: #52c41a;
-}
-
-.message-content {
-  padding: 12px 16px;
-  border-radius: 8px;
-  display: inline-block;
-  max-width: 100%;
-  line-height: 1.6;
-  word-break: break-word;
-}
-
-.message-content.user {
-  background: #e6f4ff;
-}
-
-.message-content.assistant {
-  background: #f6f6f6;
-}
-
-/* ---------- Markdown ---------- */
-.message-content.assistant p {
-  margin-bottom: 8px;
-}
-
-.message-content.assistant p:last-child {
-  margin-bottom: 0;
-}
-
-.message-content.assistant pre {
-  background: #1e1e1e;
-  border-radius: 6px;
-  padding: 12px;
-  overflow-x: auto;
-  margin: 8px 0;
-}
-
-.message-content.assistant code {
-  font-family: 'Fira Code', 'Consolas', monospace;
-  font-size: 13px;
-}
-
-.message-content.assistant :not(pre) > code {
-  background: rgba(0, 0, 0, 0.06);
-  padding: 2px 6px;
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
   border-radius: 3px;
 }
-
-.message-content.assistant ul,
-.message-content.assistant ol {
-  padding-left: 20px;
-  margin-bottom: 8px;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.message-content.assistant table {
-  border-collapse: collapse;
-  margin: 8px 0;
-}
-
-.message-content.assistant th,
-.message-content.assistant td {
-  border: 1px solid #d9d9d9;
-  padding: 6px 12px;
-}
-
-/* ---------- Input ---------- */
-.chat-input-area {
-  border-top: 1px solid #f0f0f0;
-  padding: 16px 24px;
-  background: #fff;
-}
-
-.chat-input-wrapper {
-  max-width: 800px;
-  margin: 0 auto;
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-}
-
-/* ---------- Empty state ---------- */
-.chat-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #999;
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

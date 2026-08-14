@@ -1,0 +1,84 @@
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar-bg);
+}
+
+.header {
+  padding: 12px 12px 8px;
+}
+
+/* ===== New chat button ===== */
+.newChatBtn {
+  height: 44px;
+  font-weight: 500 !important;
+  font-size: 14px;
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px !important;
+  transition: all 0.18s ease;
+  letter-spacing: 0.01em;
+}
+
+.newChatBtn:hover {
+  background: var(--hover) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.newChatBtn:active {
+  transform: scale(0.98);
+}
+
+.newChatBtn :global(.anticon) {
+  font-size: 16px !important;
+  transition: transform 0.18s ease;
+}
+
+.newChatBtn:hover :global(.anticon) {
+  transform: rotate(-8deg);
+}
+
+/* ===== Antd Menu overrides ===== */
+.sidebar :global(.ant-menu) {
+  background: transparent !important;
+  border-right: none !important;
+}
+
+.sidebar :global(.ant-menu-item) {
+  margin: 1px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  width: calc(100% - 16px) !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  font-size: 14px !important;
+  color: var(--text) !important;
+}
+
+.sidebar :global(.ant-menu-item:hover) {
+  background: var(--hover) !important;
+}
+
+.sidebar :global(.ant-menu-item-selected) {
+  background: var(--hover) !important;
+  color: var(--text) !important;
+  font-weight: 400 !important;
+}
+
+.sidebar :global(.ant-menu-item-selected::after) {
+  display: none !important;
+}
+
+.sidebar :global(.ant-menu-item .anticon) {
+  font-size: 16px !important;
+  color: var(--text-secondary) !important;
+}
