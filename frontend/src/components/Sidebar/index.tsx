@@ -1,14 +1,14 @@
-import { Button, Menu } from 'antd'
+import { Button, Menu } from "antd";
 import {
   EditOutlined,
   MessageOutlined,
   DeleteOutlined,
-} from '@ant-design/icons'
-import styles from './Sidebar.module.css'
+} from "@ant-design/icons";
+import styles from "./Sidebar.module.css";
 
 export interface SidebarSession {
-  id: string
-  title: string
+  id: string;
+  title: string;
 }
 
 export default function Sidebar({
@@ -18,11 +18,11 @@ export default function Sidebar({
   onNew,
   onDelete,
 }: {
-  sessions: SidebarSession[]
-  activeSessionId: string | null
-  onSelect: (id: string) => void
-  onNew: () => void
-  onDelete: (id: string) => void
+  sessions: SidebarSession[];
+  activeSessionId: string | null;
+  onSelect: (id: string) => void;
+  onNew: () => void;
+  onDelete: (id: string) => void;
 }) {
   // 将会话列表转换为 Antd Menu 需要的 items 格式
   const items = sessions.map((s) => ({
@@ -31,17 +31,17 @@ export default function Sidebar({
     label: (
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
         {/* 会话标题：超长文本省略号 */}
         <span
           style={{
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
           {s.title}
@@ -49,14 +49,14 @@ export default function Sidebar({
         {/* 删除按钮：阻止冒泡，避免点击删除同时触发菜单选中 */}
         <DeleteOutlined
           onClick={(e) => {
-            e.stopPropagation()
-            onDelete(s.id)
+            e.stopPropagation();
+            onDelete(s.id);
           }}
-          style={{ color: 'var(--text-tertiary)', fontSize: 13 }}
+          style={{ color: "var(--text-tertiary)", fontSize: 13 }}
         />
       </div>
     ),
-  }))
+  }));
 
   return (
     <div className={styles.sidebar}>
@@ -68,7 +68,7 @@ export default function Sidebar({
         </Button>
       </div>
       {/* 会话列表：超出时自动滚动 */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ flex: 1, overflow: "auto" }}>
         <Menu
           mode="inline"
           selectedKeys={activeSessionId ? [activeSessionId] : []}
@@ -77,5 +77,5 @@ export default function Sidebar({
         />
       </div>
     </div>
-  )
+  );
 }

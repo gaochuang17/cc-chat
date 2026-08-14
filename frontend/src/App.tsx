@@ -1,20 +1,20 @@
-import { useState, useCallback } from 'react'
-import { Input, Button, ConfigProvider } from 'antd'
-import { SendOutlined, StopOutlined } from '@ant-design/icons'
-import { useChat } from './hooks/useChat'
-import MessageList from './components/MessageList'
-import Sidebar, { type SidebarSession } from './components/Sidebar'
-import styles from './App.module.css'
+import { useState, useCallback } from "react";
+import { Input, Button, ConfigProvider } from "antd";
+import { SendOutlined, StopOutlined } from "@ant-design/icons";
+import { useChat } from "./hooks/useChat";
+import MessageList from "./components/MessageList";
+import Sidebar, { type SidebarSession } from "./components/Sidebar";
+import styles from "./App.module.css";
 
-const { TextArea } = Input
+const { TextArea } = Input;
 
 const generateId = () =>
-  Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+  Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
 export default function App() {
   // ---- 会话管理状态（App 自己管理） ----
-  const [sessions, setSessions] = useState<SidebarSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+  const [sessions, setSessions] = useState<SidebarSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   // ---- 聊天内容状态（委托给 useChat Hook） ----
   const {
@@ -25,55 +25,56 @@ export default function App() {
     sendMessage,
     stop,
     clearMessages,
-  } = useChat('/api/chat')
+  } = useChat("/api/chat");
+  console.log("====messages", messages);
 
   /** 新建对话：创建会话、设为活跃、清空聊天区 */
   const handleNewSession = useCallback(() => {
-    const id = generateId()
-    setSessions((prev) => [{ id, title: '新对话' }, ...prev])
-    setActiveSessionId(id)
-    clearMessages()
-  }, [clearMessages])
+    const id = generateId();
+    setSessions((prev) => [{ id, title: "新对话" }, ...prev]);
+    setActiveSessionId(id);
+    clearMessages();
+  }, [clearMessages]);
 
   /** 切换对话：设为活跃并清空（当前实现：切换后从空白开始） */
   const handleSelectSession = useCallback(
     (id: string) => {
-      setActiveSessionId(id)
-      clearMessages()
+      setActiveSessionId(id);
+      clearMessages();
     },
     [clearMessages],
-  )
+  );
 
   /** 删除对话：移除会话，删的是当前对话则回到空状态 */
   const handleDeleteSession = useCallback(
     (id: string) => {
-      setSessions((prev) => prev.filter((s) => s.id !== id))
+      setSessions((prev) => prev.filter((s) => s.id !== id));
       if (activeSessionId === id) {
-        setActiveSessionId(null)
-        clearMessages()
+        setActiveSessionId(null);
+        clearMessages();
       }
     },
     [activeSessionId, clearMessages],
-  )
+  );
 
   /** 发送消息：如果当前没有活跃会话，自动创建并用首条消息前 20 字做标题 */
   const handleSend = useCallback(() => {
     if (!activeSessionId && input.trim()) {
-      const id = generateId()
+      const id = generateId();
       setSessions((prev) => [
         { id, title: input.trim().slice(0, 20) },
         ...prev,
-      ])
-      setActiveSessionId(id)
+      ]);
+      setActiveSessionId(id);
     }
-    sendMessage()
-  }, [activeSessionId, input, sendMessage])
+    sendMessage();
+  }, [activeSessionId, input, sendMessage]);
 
   return (
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: '#10a37f',
+          colorPrimary: "#10a37f",
           borderRadius: 8,
           fontFamily:
             "'Söhne', 'PingFang SC', -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif",
@@ -102,8 +103,8 @@ export default function App() {
                   onPressEnter={(e) => {
                     // Enter 发送，Shift+Enter 换行
                     if (!e.shiftKey) {
-                      e.preventDefault() // 阻止 TextArea 默认换行
-                      handleSend()
+                      e.preventDefault(); // 阻止 TextArea 默认换行
+                      handleSend();
                     }
                   }}
                   placeholder="发送消息"
@@ -128,13 +129,11 @@ export default function App() {
                   />
                 )}
               </div>
-              <p className={styles.inputHint}>
-                AI 可能会犯错，请核实重要信息
-              </p>
+              <p className={styles.inputHint}>AI 可能会犯错，请核实重要信息</p>
             </div>
           </div>
         </div>
       </div>
     </ConfigProvider>
-  )
+  );
 }

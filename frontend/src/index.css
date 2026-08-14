@@ -44,8 +44,14 @@ body,
 }
 
 body {
-  font-family: 'Söhne', 'PingFang SC', -apple-system, 'SF Pro Text',
-    'Segoe UI', system-ui, sans-serif;
+  font-family:
+    "Söhne",
+    "PingFang SC",
+    -apple-system,
+    "SF Pro Text",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
   color: var(--text);
   background: var(--canvas);
   -webkit-font-smoothing: antialiased;
