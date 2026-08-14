@@ -24,6 +24,7 @@ export default function Sidebar({
   onNew: () => void
   onDelete: (id: string) => void
 }) {
+  // 将会话列表转换为 Antd Menu 需要的 items 格式
   const items = sessions.map((s) => ({
     key: s.id,
     icon: <MessageOutlined />,
@@ -35,6 +36,7 @@ export default function Sidebar({
           alignItems: 'center',
         }}
       >
+        {/* 会话标题：超长文本省略号 */}
         <span
           style={{
             overflow: 'hidden',
@@ -44,6 +46,7 @@ export default function Sidebar({
         >
           {s.title}
         </span>
+        {/* 删除按钮：阻止冒泡，避免点击删除同时触发菜单选中 */}
         <DeleteOutlined
           onClick={(e) => {
             e.stopPropagation()
@@ -57,12 +60,14 @@ export default function Sidebar({
 
   return (
     <div className={styles.sidebar}>
+      {/* 顶部：新建对话按钮 */}
       <div className={styles.header}>
         <Button className={styles.newChatBtn} block onClick={onNew}>
           <EditOutlined />
           新建对话
         </Button>
       </div>
+      {/* 会话列表：超出时自动滚动 */}
       <div style={{ flex: 1, overflow: 'auto' }}>
         <Menu
           mode="inline"

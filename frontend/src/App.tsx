@@ -12,9 +12,11 @@ const generateId = () =>
   Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
 
 export default function App() {
+  // ---- 会话管理状态（App 自己管理） ----
   const [sessions, setSessions] = useState<SidebarSession[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
 
+  // ---- 聊天内容状态（委托给 useChat Hook） ----
   const {
     messages,
     input,
@@ -25,6 +27,7 @@ export default function App() {
     clearMessages,
   } = useChat('/api/chat')
 
+  /** 新建对话：创建会话、设为活跃、清空聊天区 */
   const handleNewSession = useCallback(() => {
     const id = generateId()
     setSessions((prev) => [{ id, title: '新对话' }, ...prev])
@@ -32,6 +35,7 @@ export default function App() {
     clearMessages()
   }, [clearMessages])
 
+  /** 切换对话：设为活跃并清空（当前实现：切换后从空白开始） */
   const handleSelectSession = useCallback(
     (id: string) => {
       setActiveSessionId(id)
@@ -40,6 +44,7 @@ export default function App() {
     [clearMessages],
   )
 
+  /** 删除对话：移除会话，删的是当前对话则回到空状态 */
   const handleDeleteSession = useCallback(
     (id: string) => {
       setSessions((prev) => prev.filter((s) => s.id !== id))
@@ -51,6 +56,7 @@ export default function App() {
     [activeSessionId, clearMessages],
   )
 
+  /** 发送消息：如果当前没有活跃会话，自动创建并用首条消息前 20 字做标题 */
   const handleSend = useCallback(() => {
     if (!activeSessionId && input.trim()) {
       const id = generateId()
@@ -86,6 +92,7 @@ export default function App() {
         <div className={styles.main}>
           <MessageList messages={messages} isLoading={isLoading} />
 
+          {/* 输入区：圆角胶囊容器，内嵌 TextArea + 圆形发送按钮 */}
           <div className={styles.inputArea}>
             <div className={styles.inputContainer}>
               <div className={styles.inputWrapper}>
@@ -93,8 +100,9 @@ export default function App() {
                   value={input}
                   onChange={(e) => handleInputChange(e.target.value)}
                   onPressEnter={(e) => {
+                    // Enter 发送，Shift+Enter 换行
                     if (!e.shiftKey) {
-                      e.preventDefault()
+                      e.preventDefault() // 阻止 TextArea 默认换行
                       handleSend()
                     }
                   }}
@@ -103,6 +111,7 @@ export default function App() {
                   disabled={isLoading}
                   variant="borderless"
                 />
+                {/* 生成中显示停止按钮，空闲时显示发送按钮 */}
                 {isLoading ? (
                   <Button
                     type="primary"

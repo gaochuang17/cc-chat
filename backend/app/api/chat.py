@@ -16,16 +16,18 @@ async def chat(req: ChatRequest):
     后端以 text/event-stream 流式逐块返回 AI 回复。
 
     数据格式:
-      data: {"content": "..."}\n\n   — 每个文本片段
-      data: [DONE]\n\n              — 回复结束标记
+      data: {"content": "..."}\\n\\n   — 每个文本片段
+      data: [DONE]\\n\\n              — 回复结束标记
     """
-    # 组装发给 LLM 的消息（在最前面插入系统提示词）
+    # 组装发给 LLM 的消息：在最前面插入系统提示词，后面跟对话历史
     llm_messages = [
         {"role": "system", "content": settings.SYSTEM_PROMPT}
     ]
     for msg in req.messages:
         llm_messages.append({"role": msg.role, "content": msg.content})
 
+    # stream_chat 是一个 async generator，逐块 yield SSE 格式数据
+    # StreamingResponse 会把每个 yield 立即推给客户端，不等待全部完成
     return StreamingResponse(
         stream_chat(llm_messages),
         media_type="text/event-stream; charset=utf-8",

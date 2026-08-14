@@ -14,10 +14,12 @@ export default function MessageList({
 }) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
+  // 消息变化时（新消息或流式追加），自动滚动到底部
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // 空状态：没有消息时显示欢迎界面
   if (messages.length === 0) {
     return (
       <div className={styles.empty}>
@@ -37,9 +39,11 @@ export default function MessageList({
           const isUser = msg.role === 'user'
           return (
             <div className={styles.messageItem} key={msg.id}>
+              {/* 消息行：用户右对齐（row-reverse），AI 左对齐 */}
               <div
                 className={`${styles.messageRow} ${isUser ? styles.messageRowUser : ''}`}
               >
+                {/* 头像：用户深色，AI 绿色 */}
                 <div
                   className={`${styles.avatar} ${isUser ? styles.avatarUser : ''}`}
                 >
@@ -48,10 +52,12 @@ export default function MessageList({
                     icon={isUser ? <UserOutlined /> : <RobotOutlined />}
                   />
                 </div>
+                {/* 消息气泡：用户浅灰背景，AI 白色边框背景 */}
                 <div
                   className={`${styles.bubble} ${isUser ? styles.bubbleUser : styles.bubbleAssistant}`}
                 >
                   {msg.role === 'assistant' ? (
+                    // AI 消息：有内容时渲染 Markdown，无内容且加载中时显示打字指示器
                     msg.content ? (
                       <MarkdownRenderer content={msg.content} />
                     ) : isLoading ? (
@@ -62,6 +68,7 @@ export default function MessageList({
                       </div>
                     ) : null
                   ) : (
+                    // 用户消息：纯文本，保留换行
                     <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
                   )}
                 </div>
@@ -70,6 +77,7 @@ export default function MessageList({
           )
         })}
       </div>
+      {/* 滚动锚点：挂载在列表底部，触发 scrollIntoView */}
       <div ref={bottomRef} />
     </div>
   )
