@@ -82,3 +82,31 @@
   font-size: 16px !important;
   color: var(--text-secondary) !important;
 }
+
+/* ===== Footer (user info + logout) ===== */
+.footer {
+  padding: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.email {
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.logoutBtn {
+  color: var(--text-tertiary) !important;
+  flex-shrink: 0;
+}

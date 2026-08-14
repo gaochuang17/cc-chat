@@ -1,32 +1,43 @@
+/**
+ * 侧边栏组件：展示对话列表，支持新建、选择、删除对话。
+ *
+ * 底部显示当前用户邮箱和退出按钮。
+ */
 import { Button, Menu } from "antd";
 import {
   EditOutlined,
   MessageOutlined,
   DeleteOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import styles from "./Sidebar.module.css";
 
 export interface SidebarSession {
-  id: string;
+  id: number;
   title: string;
 }
 
 export default function Sidebar({
   sessions,
   activeSessionId,
+  email,
   onSelect,
   onNew,
   onDelete,
+  onLogout,
 }: {
   sessions: SidebarSession[];
-  activeSessionId: string | null;
-  onSelect: (id: string) => void;
+  activeSessionId: number | null;
+  email?: string;
+  onSelect: (id: number) => void;
   onNew: () => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
+  onLogout: () => void;
 }) {
   // 将会话列表转换为 Antd Menu 需要的 items 格式
   const items = sessions.map((s) => ({
-    key: s.id,
+    // Menu 组件的 key 必须是 string
+    key: String(s.id),
     icon: <MessageOutlined />,
     label: (
       <div
@@ -46,7 +57,7 @@ export default function Sidebar({
         >
           {s.title}
         </span>
-        {/* 删除按钮：阻止冒泡，避免点击删除同时触发菜单选中 */}
+        {/* 删除按钮：stopPropagation 阻止冒泡，避免点击删除同时触发菜单选中 */}
         <DeleteOutlined
           onClick={(e) => {
             e.stopPropagation();
@@ -71,10 +82,23 @@ export default function Sidebar({
       <div style={{ flex: 1, overflow: "auto" }}>
         <Menu
           mode="inline"
-          selectedKeys={activeSessionId ? [activeSessionId] : []}
+          selectedKeys={activeSessionId ? [String(activeSessionId)] : []}
           items={items}
-          onClick={({ key }) => onSelect(key)}
+          onClick={({ key }) => onSelect(Number(key))}
         />
+      </div>
+      {/* 底部：用户信息 + 退出按钮 */}
+      <div className={styles.footer}>
+        <div className={styles.userInfo}>
+          <span className={styles.email}>{email || ""}</span>
+          <Button
+            type="text"
+            size="small"
+            icon={<LogoutOutlined />}
+            onClick={onLogout}
+            className={styles.logoutBtn}
+          />
+        </div>
       </div>
     </div>
   );

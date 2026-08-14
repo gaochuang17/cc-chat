@@ -1,12 +1,7 @@
-from pydantic import BaseModel
-
-
-class Message(BaseModel):
-    """单条消息，字段和前端 TypeScript 的 Message 接口对齐"""
-    role: str      # user / assistant / system
-    content: str   # 消息内容
+from pydantic import BaseModel, Field
 
 
 class ChatRequest(BaseModel):
-    """聊天请求体：前端发送的完整对话历史"""
-    messages: list[Message]
+    """聊天请求体：前端只发对话 ID 和最新一条用户消息，历史由后端从数据库加载。"""
+    conversation_id: int
+    message: str = Field(min_length=1)

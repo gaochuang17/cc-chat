@@ -8,6 +8,9 @@ __pycache__/
 backend/.venv/
 backend/venv/
 
+backend/chat.db
+backend/chat.db-journal
+
 # Environment
 .env
 backend/.env

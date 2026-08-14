@@ -21,6 +21,8 @@ class Settings:
     SYSTEM_PROMPT: str = os.getenv(
         "SYSTEM_PROMPT", "你是一个有用的AI助手，请用中文回答用户的问题。"
     )
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-change-me")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./chat.db")
 
 
 # 全局单例，其他模块直接 from app.core.config import settings

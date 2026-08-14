@@ -1,26 +1,40 @@
 /**
- * 全局共享的类型定义
- * 前后端的 Message 字段对齐（后端 Pydantic 模型也是 role + content）
+ * 全局共享的类型定义。
+ * 前后端的字段保持对齐（后端 Pydantic 模型 <-> 前端 TS 接口）。
  */
 
-/** 消息角色：user 用户 / assistant AI / system 系统提示词（后端用，前端不显示） */
+/** 消息角色：user 用户 / assistant AI / system 系统提示词（后端用） */
 export type Role = "user" | "assistant" | "system";
 
-/** 单条消息：id 用于 React 列表 key 和精确更新，role 区分发送者 */
+/** 前端消息类型，id 用 string 以兼容临时消息和后端数字 ID */
 export interface Message {
   id: string;
   role: Role;
   content: string;
 }
 
-/** 发给后端的请求体 */
-export interface ChatRequest {
-  messages: Message[];
+/** 后端返回的消息（带数字 id 和时间戳） */
+export interface ServerMessage {
+  id: number;
+  role: Role;
+  content: string;
+  created_at: string;
 }
 
-/** 一个完整的会话（含标题和历史消息） */
-export interface Session {
-  id: string;
+/** 一个对话（会话），包含标题和时间戳 */
+export interface Conversation {
+  id: number;
   title: string;
-  messages: Message[];
+  created_at: string;
+  updated_at: string;
+}
+
+/** 用户信息（登录后从 /api/users/me 获取） */
+export interface User {
+  id: string;
+  email: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  is_verified: boolean;
+  created_at: string;
 }
