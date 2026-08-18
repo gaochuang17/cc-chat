@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
-import { Avatar } from "antd";
-import { UserOutlined, RobotOutlined } from "@ant-design/icons";
+import { RobotOutlined } from "@ant-design/icons";
 import type { Message } from "../../types";
-import MarkdownRenderer from "../MarkdownRenderer";
+import MessageItem from "./MessageItem";
 import styles from "./MessageList.module.css";
 
 export default function MessageList({
@@ -12,12 +11,44 @@ export default function MessageList({
   messages: Message[];
   isLoading: boolean;
 }) {
+  // listRef 用于计算滚动位置；bottomRef 是实际滚动目标
+  const listRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // 消息变化时（新消息或流式追加），自动滚动到底部
+  /*
+   * 记录上一次渲染时最后一条消息的临时 ID。
+   *
+   * ID 变化说明是“新消息”或“切换会话”；ID 不变而 messages 引用变化，
+   * 通常就是最后一条 assistant 消息的流式追加。
+   */
+  const lastMessageIdRef = useRef<string | null>(null);
+  const lastMessage = messages[messages.length - 1];
+
+  /*
+   * 滚动策略区分两类变化：
+   * - 新消息或切换会话：强制滚到底部，保证用戟能看到最新消息；
+   * - 同一条消息流式追加：只有用户本来就在底部附近时才继续跟随，
+   *   避免用户回看上文时被每个 chunk 强行拉回底部。
+   */
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const list = listRef.current;
+    if (!list) return;
+
+    const isNewMessage = lastMessageIdRef.current !== (lastMessage?.id ?? null);
+    lastMessageIdRef.current = lastMessage?.id ?? null;
+
+    if (!isNewMessage) {
+      // 80px 容差覆盖滚动边界误差，也允许用户略微上移查看最后一屏
+      const distanceToBottom =
+        list.scrollHeight - list.scrollTop - list.clientHeight;
+      if (distanceToBottom > 80) return;
+    }
+
+    bottomRef.current?.scrollIntoView({
+      // 流式追加使用 auto，避免高频率 smooth 动画互相抢占
+      behavior: isNewMessage ? "smooth" : "auto",
+    });
+  }, [messages, lastMessage?.id]);
 
   // 空状态：没有消息时显示欢迎界面
   if (messages.length === 0) {
@@ -33,51 +64,11 @@ export default function MessageList({
   }
 
   return (
-    <div className={styles.messages}>
+    <div ref={listRef} className={styles.messages}>
       <div className={styles.messagesInner}>
-        {messages.map((msg) => {
-          const isUser = msg.role === "user";
-          return (
-            <div className={styles.messageItem} key={msg.id}>
-              {/* 消息行：用户右对齐（row-reverse），AI 左对齐 */}
-              <div
-                className={`${styles.messageRow} ${isUser ? styles.messageRowUser : ""}`}
-              >
-                {/* 头像：用户深色，AI 绿色 */}
-                <div
-                  className={`${styles.avatar} ${isUser ? styles.avatarUser : ""}`}
-                >
-                  <Avatar
-                    size={32}
-                    icon={isUser ? <UserOutlined /> : <RobotOutlined />}
-                  />
-                </div>
-                {/* 消息气泡：用户浅灰背景，AI 白色边框背景 */}
-                <div
-                  className={`${styles.bubble} ${isUser ? styles.bubbleUser : styles.bubbleAssistant}`}
-                >
-                  {msg.role === "assistant" ? (
-                    // AI 消息：有内容时渲染 Markdown，无内容且加载中时显示打字指示器
-                    msg.content ? (
-                      <MarkdownRenderer content={msg.content} />
-                    ) : isLoading ? (
-                      <div className={styles.typingIndicator}>
-                        <span className={styles.typingDot} />
-                        <span className={styles.typingDot} />
-                        <span className={styles.typingDot} />
-                      </div>
-                    ) : null
-                  ) : (
-                    // 用户消息：纯文本，保留换行
-                    <span style={{ whiteSpace: "pre-wrap" }}>
-                      {msg.content}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {messages.map((msg) => (
+          <MessageItem key={msg.id} message={msg} isLoading={isLoading} />
+        ))}
       </div>
       {/* 滚动锚点：挂载在列表底部，触发 scrollIntoView */}
       <div ref={bottomRef} />

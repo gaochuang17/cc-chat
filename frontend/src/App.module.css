@@ -12,6 +12,13 @@
   background: var(--canvas);
 }
 
+/* ===== History loading error ===== */
+.historyAlert {
+  flex-shrink: 0;
+  width: min(100%, var(--content-width));
+  margin: 24px auto 0;
+}
+
 /* ===== Input area ===== */
 .inputArea {
   flex-shrink: 0;

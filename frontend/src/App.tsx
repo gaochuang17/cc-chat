@@ -6,13 +6,14 @@
  */
 import { useCallback, useState } from "react";
 import {
+  Alert,
   Input,
   Button,
   Spin,
   ConfigProvider,
   message as antdMessage,
 } from "antd";
-import { SendOutlined, StopOutlined } from "@ant-design/icons";
+import { ReloadOutlined, SendOutlined, StopOutlined } from "@ant-design/icons";
 import { useAuth } from "./hooks/useAuth";
 import { useConversations } from "./hooks/useConversations";
 import { useChat } from "./hooks/useChat";
@@ -39,21 +40,35 @@ export default function App() {
     refresh: refreshConversations,
   } = useConversations(!!user);
 
-  // ---- 聊天状态（绑定到当前活跃对话）----
-  const { messages, input, isLoading, handleInputChange, sendMessage, stop } =
-    useChat(activeId);
+  /*
+   * ---- 聊天状态（按会话缓存）----
+   *
+   * Zustand 中所有会话都有自己的缓存；这里根据 activeId 取出当前投影。
+   * userId 传给 useChat 是为了登出或切换账号时清空全局聊天缓存。
+   */
+  const {
+    messages,
+    input,
+    isLoading,
+    isHistoryLoading,
+    historyError,
+    retryHistory,
+    handleInputChange,
+    sendMessage,
+    stop,
+    removeConversationChat,
+  } = useChat(activeId, user?.id);
 
   /**
    * 进入新的草稿对话。
    *
-   * 这里只清空当前选中状态和消息区，不立即创建数据库记录；
-   * 等用户发送第一条消息时再真正落库，避免侧边栏积累空对话。
+   * 这里只切换到草稿态，不创建数据库记录，也不中断其他会话的流式生成。
+   * 用户发送第一条消息时再真正落库，避免侧边栏积累空对话。
    */
   const handleNewSession = useCallback(() => {
     if (isCreatingConversation) return;
-    if (isLoading) stop();
     setActiveId(null);
-  }, [isCreatingConversation, isLoading, setActiveId, stop]);
+  }, [isCreatingConversation, setActiveId]);
 
   /** 选择已有对话 */
   const handleSelectSession = useCallback(
@@ -66,9 +81,11 @@ export default function App() {
   /** 删除对话 */
   const handleDeleteSession = useCallback(
     async (id: number) => {
+      // 先请求后端；只有确认删除成功，才放弃本地流式内容和缓存
       await deleteConversation(id);
+      removeConversationChat(id);
     },
-    [deleteConversation],
+    [deleteConversation, removeConversationChat],
   );
 
   /**
@@ -79,15 +96,31 @@ export default function App() {
    * 发送完成后刷新侧边栏，因为后端会在首条消息时自动更新对话标题。
    */
   const handleSend = useCallback(async () => {
-    if (isCreatingConversation || isLoading || !input.trim()) return;
+    /*
+     * 五个守卫分别处理：
+     * 1. 创建请求在路上：避免重复创建空会话；
+     * 2. 当前会话生成中：等待本轮回复结束；
+     * 3. 历史加载中：避免在旧数据和新请求之间产生时序竞争；
+     * 4. 历史加载失败：先重试恢复缓存，再允许继续发送；
+     * 5. 输入为空：后端不需要处理空消息。
+     */
+    if (
+      isCreatingConversation ||
+      isLoading ||
+      isHistoryLoading ||
+      Boolean(historyError) ||
+      !input.trim()
+    )
+      return;
 
-    let conversationIdToSend = activeId;
+    const isNewConversation = activeId === null;
+    let newConversationId: number | null = null;
 
-    if (!activeId) {
+    if (isNewConversation) {
       setIsCreatingConversation(true);
       try {
         const conversation = await createConversation();
-        conversationIdToSend = conversation.id;
+        newConversationId = conversation.id;
       } catch (e) {
         antdMessage.error((e as Error).message || "创建对话失败");
         return;
@@ -96,11 +129,21 @@ export default function App() {
       }
     }
 
-    if (conversationIdToSend === null) return;
+    /*
+     * 只有“新对话首次发送”才显式传入 ID：此时输入草稿仍在顶层
+     * draftInput，且 React 可能还没把新 activeId 传回 useChat。
+     *
+     * 已选中会话必须调用 sendMessage()，让 store 从当前
+     * activeConversationId 对应的 chats[id].draftInput 读取草稿。
+     */
+    if (isNewConversation) {
+      if (newConversationId === null) return;
+      await sendMessage(newConversationId);
+    } else {
+      await sendMessage();
+    }
 
-    // 显式传入对话 ID，避免依赖 useChat 的 conversationId prop 完成重渲染
-    await sendMessage(conversationIdToSend);
-    // 对话标题可能在后端被自动更新，发送结束后刷新侧边栏同步
+    // 首条消息可能触发后端自动生成标题，结束后统一刷新侧边栏
     await refreshConversations();
   }, [
     activeId,
@@ -108,6 +151,8 @@ export default function App() {
     input,
     isCreatingConversation,
     isLoading,
+    isHistoryLoading,
+    historyError,
     refreshConversations,
     sendMessage,
   ]);
@@ -157,6 +202,32 @@ export default function App() {
         />
 
         <div className={styles.main}>
+          {/*
+           * 历史错误必须阻塞发送：如果把它当成空会话继续发，
+           * 后端仍会按数据库里的完整上下文生成，用户看到的上下文
+           * 和模型实际输入会不一致。
+           */}
+          {historyError ? (
+            <Alert
+              className={styles.historyAlert}
+              type="error"
+              showIcon
+              message="历史消息加载失败"
+              description={historyError}
+              action={
+                <Button
+                  size="small"
+                  icon={<ReloadOutlined />}
+                  onClick={() => {
+                    if (activeId !== null) retryHistory();
+                  }}
+                >
+                  重试
+                </Button>
+              }
+            />
+          ) : null}
+
           <MessageList messages={messages} isLoading={isLoading} />
 
           {/* 输入区：圆角胶囊容器，内嵌 TextArea + 圆形发送按钮 */}
@@ -175,7 +246,12 @@ export default function App() {
                   }}
                   placeholder="发送消息"
                   autoSize={{ minRows: 1, maxRows: 6 }}
-                  disabled={isLoading || isCreatingConversation}
+                  disabled={
+                    isLoading ||
+                    isHistoryLoading ||
+                    Boolean(historyError) ||
+                    isCreatingConversation
+                  }
                   variant="borderless"
                 />
                 {/* 生成中显示停止按钮，空闲时显示发送按钮 */}
@@ -184,14 +260,20 @@ export default function App() {
                     type="primary"
                     danger
                     icon={<StopOutlined />}
-                    onClick={stop}
+                    onClick={() => stop()}
                   />
                 ) : (
                   <Button
                     type="primary"
                     icon={<SendOutlined />}
                     onClick={handleSend}
-                    disabled={!input.trim() || isCreatingConversation}
+                    disabled={
+                      !input.trim() ||
+                      isLoading ||
+                      isHistoryLoading ||
+                      Boolean(historyError) ||
+                      isCreatingConversation
+                    }
                     loading={isCreatingConversation}
                   />
                 )}
