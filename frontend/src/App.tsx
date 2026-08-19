@@ -33,8 +33,6 @@ export default function App() {
   // ---- 对话管理（仅在登录后启用）----
   const {
     conversations,
-    activeId,
-    setActiveId,
     create: createConversation,
     remove: deleteConversation,
     refresh: refreshConversations,
@@ -43,10 +41,12 @@ export default function App() {
   /*
    * ---- 聊天状态（按会话缓存）----
    *
-   * Zustand 中所有会话都有自己的缓存；这里根据 activeId 取出当前投影。
-   * userId 传给 useChat 是为了登出或切换账号时清空全局聊天缓存。
+   * 每个已创建会话在 chatStore.chats 中有自己的缓存。
+   * chatStore.activeConversationId 保存当前选中的会话；点击已有会话时，
+   * selectExistingConversation 会更新它并按需请求历史。
    */
   const {
+    activeConversationId: activeId,
     messages,
     input,
     isLoading,
@@ -56,26 +56,29 @@ export default function App() {
     handleInputChange,
     sendMessage,
     stop,
+    startDraftConversation,
+    selectExistingConversation,
+    adoptCreatedConversation,
     removeConversationChat,
-  } = useChat(activeId, user?.id);
+  } = useChat(user?.id);
 
   /**
    * 进入新的草稿对话。
    *
    * 这里只切换到草稿态，不创建数据库记录，也不中断其他会话的流式生成。
-   * 用户发送第一条消息时再真正落库，避免侧边栏积累空对话。
+   * 用户发送第一条消息时再调用创建接口，避免侧边栏积累空对话。
    */
   const handleNewSession = useCallback(() => {
     if (isCreatingConversation) return;
-    setActiveId(null);
-  }, [isCreatingConversation, setActiveId]);
+    startDraftConversation();
+  }, [isCreatingConversation, startDraftConversation]);
 
   /** 选择已有对话 */
   const handleSelectSession = useCallback(
     (id: number) => {
-      setActiveId(id);
+      selectExistingConversation(id);
     },
-    [setActiveId],
+    [selectExistingConversation],
   );
 
   /** 删除对话 */
@@ -92,15 +95,17 @@ export default function App() {
    * 发送消息。
    *
    * 如果当前没有活跃对话，先创建一条对话记录，再显式使用新对话 ID
-   * 调用聊天接口。这样不依赖 setState 何时生效，也没有 setTimeout 竞态。
+   * 调用聊天接口。三步按顺序执行：createConversation 创建记录，
+   * adoptCreatedConversation 建立本地空缓存并选中它，sendMessage(newId)
+   * 读取草稿并发送。
    * 发送完成后刷新侧边栏，因为后端会在首条消息时自动更新对话标题。
    */
   const handleSend = useCallback(async () => {
     /*
-     * 五个守卫分别处理：
+     * 五个前置检查分别处理：
      * 1. 创建请求在路上：避免重复创建空会话；
      * 2. 当前会话生成中：等待本轮回复结束；
-     * 3. 历史加载中：避免在旧数据和新请求之间产生时序竞争；
+     * 3. 历史加载中：避免历史响应和本次发送的本地更新交错到达；
      * 4. 历史加载失败：先重试恢复缓存，再允许继续发送；
      * 5. 输入为空：后端不需要处理空消息。
      */
@@ -121,6 +126,8 @@ export default function App() {
       try {
         const conversation = await createConversation();
         newConversationId = conversation.id;
+        // 建立空缓存并选中新 ID；这个动作不会请求历史。
+        adoptCreatedConversation(newConversationId);
       } catch (e) {
         antdMessage.error((e as Error).message || "创建对话失败");
         return;
@@ -131,7 +138,7 @@ export default function App() {
 
     /*
      * 只有“新对话首次发送”才显式传入 ID：此时输入草稿仍在顶层
-     * draftInput，且 React 可能还没把新 activeId 传回 useChat。
+     * draftInput，而不是 chats[newId].draftInput。
      *
      * 已选中会话必须调用 sendMessage()，让 store 从当前
      * activeConversationId 对应的 chats[id].draftInput 读取草稿。
@@ -153,6 +160,7 @@ export default function App() {
     isLoading,
     isHistoryLoading,
     historyError,
+    adoptCreatedConversation,
     refreshConversations,
     sendMessage,
   ]);

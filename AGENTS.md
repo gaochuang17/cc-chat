@@ -1,5 +1,12 @@
 # Project Instructions
 
+## Source Of Truth
+
+For every code change, base implementation decisions on the current source
+code, types, tests, migrations, and observed runtime behavior. Do not use
+existing development documents as the source of truth because they may be
+outdated or incorrect. Treat those documents as historical records only.
+
 ## Code Change Checklist
 
 For every task that changes code under `frontend/`, unless the user explicitly
@@ -29,6 +36,13 @@ This rule applies to both `frontend/` and `backend/` changes.
 
 When code behavior changes, update, add, or delete outdated comments so they
 stay synchronized with the implementation.
+
+Write comments in concrete, observable terms. Name the relevant field, function,
+request, component, or timing, and explain what happens and why. Avoid
+design-discussion shorthand such as "single source", "selection intent",
+"ownership", "optimistic update", "projection", "snapshot", or "guard" unless
+the comment first defines it concretely. A reader should understand the comment
+without knowing the earlier design conversation.
 
 ## Unrelated Refactoring
 

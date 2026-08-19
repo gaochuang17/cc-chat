@@ -4,41 +4,42 @@
  * 所有操作走真实后端 API，数据持久化在服务器。
  * enabled 参数控制是否启用（通常在用户登录后才启用）。
  *
- * 异步写回规则：
+ * 异步响应提交规则：
  * 1. 请求发出时的界面状态，不一定等于响应返回时的界面状态；
  * 2. 每个异步请求记录当时的 sessionToken 和 listToken；
  * 3. 响应返回后，只有 token 仍匹配当前 guard，才允许写入 UI；
- * 4. 守卫只拦截前端写回，不取消请求，也不撤销后端已完成的操作。
+ * 4. 校验只阻止过期响应修改前端状态；它不会取消请求，也不会撤销
+ *    后端已经完成的创建或删除。
  *
  * 两个 token 分别回答两个问题：
- * - sessionToken：这个响应还属于当前登录周期吗？
- * - listToken：这份列表数据仍是当前界面接受的快照吗？
+ * - sessionToken：响应返回后，用户是否仍在发起请求时的登录状态？
+ * - listToken：这个 list 响应是否仍对应界面当前接受的列表版本？
  *
  * 不同接口的校验范围：
  * - list 响应：两个 token 都必须匹配；
- * - create/delete 响应：只要求登录周期匹配；本地写回前替换 listToken。
+ * - create/delete 响应：只要求登录状态匹配；修改本地列表前替换 listToken。
  */
 import { useState, useCallback, useEffect, useRef } from "react";
 import { conversationApi } from "../lib/api";
 import type { Conversation } from "../types";
 
-/** 登录周期令牌：只比较是否相等，不承载业务含义 */
+/** 登录状态标识；只比较是否相等，不承载其他业务含义 */
 type SessionToken = string;
 
-/** 列表快照令牌：只比较是否相等，不承载业务含义 */
+/** 列表版本标识；只比较是否相等，不承载其他业务含义 */
 type ListToken = string;
 
-/** 一次列表请求发起时的身份和列表快照 */
+/** 一次列表请求发起时的登录状态标识和列表版本标识 */
 interface ListRequestSnapshot {
   sessionToken: SessionToken;
   listToken: ListToken;
 }
 
-/** 当前允许写入 UI 的登录身份和列表快照 */
+/** 响应修改 UI 前用于比较的当前登录状态标识和列表版本标识 */
 interface ConversationRequestGuard {
-  /** 当前登录周期；登出时整个 guard 会被置空 */
+  /** 当前登录状态；登出后整个对象会被置为 null */
   sessionToken: SessionToken;
-  /** 当前接受的列表快照；列表语义变化时替换 */
+  /** 当前接受的列表版本；列表数据变化前会先替换它 */
   listToken: ListToken;
 }
 
@@ -46,13 +47,13 @@ interface ConversationRequestGuard {
  * 创建随机 token。它只用于异步响应身份比较，不用于安全场景。
  *
  * randomUUID 依赖安全上下文；如果应用部署在普通 HTTP 环境，
- * 使用时间戳加随机数作为兜底即可满足前端请求身份比较。
+ * 使用时间戳加随机数作为降级方案即可满足前端请求身份比较。
  */
 const createToken = () =>
   globalThis.crypto?.randomUUID?.() ??
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
-/** create/delete 响应写回前，确认它仍属于当前登录周期 */
+/** create/delete 响应修改 UI 前，确认它仍属于当前登录状态 */
 function isSameSession(
   guard: ConversationRequestGuard | null,
   sessionToken: SessionToken,
@@ -60,7 +61,7 @@ function isSameSession(
   return guard?.sessionToken === sessionToken;
 }
 
-/** list 响应必须同时匹配登录周期和列表快照，才能提交 */
+/** list 响应必须同时匹配当前登录状态和列表版本，才能写入 UI */
 function canCommitList(
   guard: ConversationRequestGuard | null,
   snapshot: ListRequestSnapshot,
@@ -74,16 +75,15 @@ function canCommitList(
 
 export function useConversations(enabled: boolean) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeId, setActiveId] = useState<number | null>(null);
 
   /*
-   * ref 能让异步响应返回时读到“最新守卫”；state 只能反映某次渲染。
+   * ref 能让异步响应返回时读到最新校验值；state 只能反映某次渲染。
    * guard 不是业务数据，不参与渲染。
-   * null 表示已登出，所有旧账号响应都不能写回。
+   * null 表示已登出，所有旧账号响应都不能修改 UI。
    */
   const guardRef = useRef<ConversationRequestGuard | null>(null);
 
-  /** 登录后按需创建新的登录周期和列表 token */
+  /** 登录后按需创建新的登录状态标识和列表版本标识 */
   const ensureGuard = useCallback((): ConversationRequestGuard => {
     if (!guardRef.current) {
       guardRef.current = {
@@ -101,7 +101,7 @@ export function useConversations(enabled: boolean) {
   }, [ensureGuard]);
 
   const refresh = useCallback(async () => {
-    // 新 listToken 表示“只接受本次请求的快照”，更早的慢请求自动失效
+    // 新 listToken 表示只接受本次请求；更早的慢请求返回时会被丢弃
     const guard = ensureGuard();
     const snapshot: ListRequestSnapshot = {
       sessionToken: guard.sessionToken,
@@ -122,12 +122,12 @@ export function useConversations(enabled: boolean) {
   }, [ensureGuard]);
 
   useEffect(() => {
-    // 清空列表和高亮，避免旧账号数据或 activeId 泄漏到下一次登录
+    // 清空列表，避免旧账号数据泄漏到下一次登录。当前选中的会话 ID
+    // 由 chatStore 负责重置，本 Hook 不保存另一份 activeId。
     if (!enabled) {
-      // guard 置空后，旧账号所有在途响应都无法通过写回校验
+      // guard 置空后，旧账号所有未完成响应都无法通过提交校验
       guardRef.current = null;
       setConversations([]);
-      setActiveId(null);
       return;
     }
 
@@ -136,44 +136,43 @@ export function useConversations(enabled: boolean) {
   }, [enabled, refresh]);
 
   const create = useCallback(async () => {
-    // 草稿对话首次发送时才调用：在后端创建记录，插入列表顶部并设为活跃
-    // 记录请求前的登录周期，用于识别“创建成功但用户已登出”的响应
+    // 草稿对话首次发送时才调用：这里只创建会话并插入列表。当前选中
+    // ID 由 chatStore 动作更新，避免列表变化间接触发历史请求。
+    // 记录请求前的登录状态，用于识别“创建成功但用户已登出”的响应
     const sessionToken = ensureGuard().sessionToken;
     const conv = await conversationApi.create();
 
-    // 后端可能创建成功，但旧登录周期的新会话不能进入当前账号 UI
+    // 后端可能创建成功，但用户登出前的响应不能进入新账号 UI
     if (!isSameSession(guardRef.current, sessionToken)) {
       throw new Error("登录状态已变化，请重新登录");
     }
 
-    // 新会话会改变列表，因此先让在途 list 响应失效
+    // 新会话会改变列表，因此先让未完成的 list 响应失效
     replaceListToken();
     setConversations((prev) => [conv, ...prev]);
-    setActiveId(conv.id);
     return conv;
   }, [ensureGuard, replaceListToken]);
 
   const remove = useCallback(
     async (id: number) => {
-      // 从后端删除对话，如果删的是当前对话则清空活跃 ID
-      // 删除同样可能跨越登出动作，返回后先校验登录周期
+      // 从后端删除对话。当前选中的会话 ID 由 removeConversationChat 处理。
+      // 删除请求也可能跨越登出动作，返回后先校验登录状态
       const sessionToken = ensureGuard().sessionToken;
       await conversationApi.delete(id);
 
-      // 登录周期已变化时，不修改新账号列表
+      // 登录状态已变化时，不修改新账号列表
       if (!isSameSession(guardRef.current, sessionToken)) {
         return;
       }
 
-      // 删除会改变列表，必须防止旧 list 响应把它“复活”
+      // 删除会改变列表，必须防止旧 list 响应重新加回该会话
       replaceListToken();
       setConversations((prev) => prev.filter((c) => c.id !== id));
-      setActiveId((prev) => (prev === id ? null : prev));
     },
     [ensureGuard, replaceListToken],
   );
 
-  /** 本地更新标题；同步写回，但同样要防止在途 list 响应带回旧标题 */
+  /** 本地更新标题；同样要防止未完成的 list 响应带回旧标题 */
   const updateTitle = useCallback(
     (id: number, title: string) => {
       if (!enabled) return;
@@ -188,8 +187,6 @@ export function useConversations(enabled: boolean) {
 
   return {
     conversations,
-    activeId,
-    setActiveId,
     refresh,
     create,
     remove,
