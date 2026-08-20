@@ -1,18 +1,19 @@
+/* 登录页跟随蓝色主题：浅蓝灰底 + 扁平白卡片 */
 .page {
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--sidebar-bg);
+  background: #f5f8fc;
 }
 
 .card {
   width: 380px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 16px;
   padding: 40px 32px 32px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(16, 24, 40, 0.05);
 }
 
 .title {

@@ -1,23 +1,31 @@
 /* ===== Design Tokens — Global CSS Variables ===== */
+/*
+ * 设计令牌对齐界面设计图（frontend/pictures/界面设计.png）：
+ * 蓝色主色 + 白色扁平界面；侧边栏通过留白和轻投影呈现为独立卡片。
+ */
 :root {
   --canvas: #ffffff;
-  --sidebar-bg: #f9f9f9;
+  --sidebar-bg: #ffffff;
   --surface: #ffffff;
-  --hover: #ececec;
-  --hover-light: #f2f2f2;
-  --border: #e5e5e5;
-  --border-subtle: #f0f0f0;
+  --hover: #f3f4f6;
+  --hover-light: #f9fafb;
+  --border: #e5e7eb;
+  --border-subtle: #f0f2f5;
 
-  --text: #0d0d0d;
-  --text-secondary: #5d5d5d;
-  --text-tertiary: #8e8e8e;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
 
-  --accent: #10a37f;
-  --accent-hover: #0d8c6d;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  /* 侧边栏选中项、按钮 hover 使用的浅蓝高亮 */
+  --accent-light: #e8f1fe;
+  /* 输入框聚焦时蓝色描边外的柔和光环 */
+  --accent-ring: rgba(59, 130, 246, 0.12);
 
-  --bubble-user: #f4f4f4;
-  --bubble-ai: #ffffff;
-  --code-bg: #f9f9f9;
+  --bubble-user: #dbeafe;
+  --bubble-ai: #f5f7fa;
+  --code-bg: #f6f8fa;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -26,7 +34,10 @@
 
   --content-width: 1000px;
 
-  --shadow-input: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-input: 0 1px 2px rgba(16, 24, 40, 0.04);
+  /* --sidebar-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.03), 0 10px 28px rgba(16, 24, 40, 0.04); */
+  --sidebar-shadow: 0 0 12px rgba(0, 0, 0, 0.12);
 }
 
 /* ===== Reset ===== */

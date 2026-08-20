@@ -191,7 +191,7 @@ export default function App() {
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: "#10a37f",
+          colorPrimary: "#3b82f6",
           borderRadius: 8,
           fontFamily:
             "'Sohne', 'PingFang SC', -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif",

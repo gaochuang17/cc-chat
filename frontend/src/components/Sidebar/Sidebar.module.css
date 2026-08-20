@@ -1,38 +1,55 @@
+/*
+ * 侧边栏是外层布局中的独立圆角卡片；会话列表只在卡片内部滚动，
+ * 底部账号区与卡片圆角保持同步，不被视口边缘裁切。
+ */
 .sidebar {
   width: 260px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   background: var(--sidebar-bg);
+  border-radius: 16px;
+  box-shadow: var(--sidebar-shadow);
+  overflow: hidden;
+  margin: 16px;
+}
+
+@media (max-width: 640px) {
+  .sidebar {
+    width: 100%;
+    max-height: 42vh;
+  }
 }
 
 .header {
-  padding: 12px 12px 8px;
+  padding: 16px 12px 8px;
 }
 
 /* ===== New chat button ===== */
 .newChatBtn {
-  height: 44px;
+  height: 40px;
   font-weight: 500 !important;
   font-size: 14px;
   background: transparent !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
+  border: 1px solid var(--accent) !important;
+  color: var(--accent) !important;
   box-shadow: none !important;
-  border-radius: 8px !important;
+  border-radius: var(--radius-sm) !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   padding: 0 16px !important;
-  transition: all 0.18s ease;
-  letter-spacing: 0.01em;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .newChatBtn:hover {
-  background: var(--hover) !important;
-  border-color: var(--border) !important;
-  color: var(--text) !important;
+  background: var(--accent-light) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-hover) !important;
 }
 
 .newChatBtn:active {
@@ -40,12 +57,7 @@
 }
 
 .newChatBtn :global(.anticon) {
-  font-size: 16px !important;
-  transition: transform 0.18s ease;
-}
-
-.newChatBtn:hover :global(.anticon) {
-  transform: rotate(-8deg);
+  font-size: 14px !important;
 }
 
 /* ===== Antd Menu overrides ===== */
@@ -55,38 +67,37 @@
 }
 
 .sidebar :global(.ant-menu-item) {
-  margin: 1px 8px !important;
+  margin: 2px 8px !important;
   border-radius: var(--radius-sm) !important;
   width: calc(100% - 16px) !important;
   height: 38px !important;
   line-height: 38px !important;
   font-size: 14px !important;
-  color: var(--text) !important;
 }
 
 .sidebar :global(.ant-menu-item:hover) {
   background: var(--hover) !important;
 }
 
+/* 选中态：设计图为浅蓝底 + 主色文字 */
 .sidebar :global(.ant-menu-item-selected) {
-  background: var(--hover) !important;
-  color: var(--text) !important;
-  font-weight: 400 !important;
+  background: var(--accent-light) !important;
+  color: var(--accent) !important;
+  font-weight: 500 !important;
+}
+
+.sidebar :global(.ant-menu-item-selected:hover) {
+  background: var(--accent-light) !important;
 }
 
 .sidebar :global(.ant-menu-item-selected::after) {
   display: none !important;
 }
 
-.sidebar :global(.ant-menu-item .anticon) {
-  font-size: 16px !important;
-  color: var(--text-secondary) !important;
-}
-
 /* ===== Footer (user info + logout) ===== */
 .footer {
   padding: 12px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border);
 }
 
 .userInfo {

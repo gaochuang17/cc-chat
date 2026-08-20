@@ -5,8 +5,7 @@
  */
 import { Button, Menu } from "antd";
 import {
-  EditOutlined,
-  MessageOutlined,
+  PlusOutlined,
   DeleteOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
@@ -34,11 +33,10 @@ export default function Sidebar({
   onDelete: (id: number) => void;
   onLogout: () => void;
 }) {
-  // 将会话列表转换为 Antd Menu 需要的 items 格式
+  // 将会话列表转换为 Antd Menu 需要的 items 格式；设计图列表项仅显示标题，不带图标
   const items = sessions.map((s) => ({
     // Menu 组件的 key 必须是 string
     key: String(s.id),
-    icon: <MessageOutlined />,
     label: (
       <div
         style={{
@@ -74,8 +72,8 @@ export default function Sidebar({
       {/* 顶部：新建对话按钮 */}
       <div className={styles.header}>
         <Button className={styles.newChatBtn} block onClick={onNew}>
-          <EditOutlined />
-          新建对话
+          <PlusOutlined />
+          新对话
         </Button>
       </div>
       {/* 会话列表：超出时自动滚动 */}

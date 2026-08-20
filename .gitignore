@@ -24,3 +24,8 @@ frontend/dist/
 
 # OS
 .DS_Store
+
+.pnpm-store/
+pictures/
+chatkit-ui/
+release-practice/

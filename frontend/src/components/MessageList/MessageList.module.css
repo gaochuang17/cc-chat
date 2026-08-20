@@ -55,15 +55,11 @@
 .bubbleUser {
   background: var(--bubble-user);
   color: var(--text);
-  border-top-right-radius: 4px;
 }
 
 .bubbleAssistant {
-  background: var(--bubble-ai);
   border-top-left-radius: 4px;
-  flex: 1;
   max-width: 88%;
-  margin-bottom: 50px;
 }
 
 /* ===== Typing indicator ===== */

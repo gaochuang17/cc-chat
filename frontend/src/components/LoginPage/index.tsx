@@ -19,10 +19,7 @@ export default function LoginPage({ onLogin, onRegister }: LoginPageProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (values: {
-    email: string;
-    password: string;
-  }) => {
+  const handleSubmit = async (values: { email: string; password: string }) => {
     setLoading(true);
     setError("");
     try {
@@ -47,9 +44,7 @@ export default function LoginPage({ onLogin, onRegister }: LoginPageProps) {
         <div className={styles.logo}>
           <RobotOutlined style={{ color: "var(--accent)" }} />
         </div>
-        <h2 className={styles.title}>
-          {mode === "login" ? "登录" : "注册"}
-        </h2>
+        <h2 className={styles.title}>{mode === "login" ? "登录" : "注册"}</h2>
 
         {error && <div className={styles.error}>{error}</div>}
 

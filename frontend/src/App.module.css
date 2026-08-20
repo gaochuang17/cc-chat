@@ -2,6 +2,7 @@
   display: flex;
   height: 100vh;
   overflow: hidden;
+  gap: 16px;
 }
 
 .main {
@@ -9,7 +10,16 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   background: var(--canvas);
+}
+
+@media (max-width: 640px) {
+  .layout {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
 }
 
 /* ===== History loading error ===== */
@@ -45,7 +55,8 @@
 }
 
 .inputWrapper:focus-within {
-  border-color: var(--text-tertiary);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 /* Antd TextArea overrides */
@@ -83,16 +94,22 @@
   padding: 0 !important;
 }
 .inputWrapper :global(.ant-btn-primary) {
-  background: var(--text) !important;
+  background: var(--accent) !important;
+}
+.inputWrapper :global(.ant-btn-primary:hover:not([disabled])) {
+  background: var(--accent-hover) !important;
 }
 .inputWrapper :global(.ant-btn-primary[disabled]) {
-  background: var(--hover) !important;
+  background: var(--hover-light) !important;
 }
 .inputWrapper :global(.ant-btn-dangerous) {
-  background: var(--text) !important;
+  background: var(--accent) !important;
 }
 .inputWrapper :global(.ant-btn .anticon) {
   color: #fff;
+}
+.inputWrapper :global(.ant-btn[disabled] .anticon) {
+  color: var(--text-tertiary);
 }
 
 .inputHint {
