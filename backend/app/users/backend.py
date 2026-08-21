@@ -13,8 +13,8 @@ bearer_transport = BearerTransport(tokenUrl="api/auth/jwt/login")
 
 
 def get_jwt_strategy() -> JWTStrategy:
-    """JWT 签名策略：token 有效期 1 小时，过期后需重新登录。"""
-    return JWTStrategy(secret=settings.SECRET_KEY, lifetime_seconds=3600)
+    """JWT 签名策略：token 有效期 24 小时，过期后需重新登录。"""
+    return JWTStrategy(secret=settings.SECRET_KEY, lifetime_seconds=86400)
 
 
 # 认证后端：组合传输方式 + 签名策略
